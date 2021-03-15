@@ -1,10 +1,17 @@
 const https = require('https');
 const config = require('./config.js');
+const fs = require('fs');
 
 const HOST = 'api.glovoapp.com';
 const API_PATH = '/';
 const API_PATH_V3 = '/v3/';
 const PORT = 443;
+
+var user = {}
+
+function setup() {
+	fs.promises.mkdir('data', { recursive: true }).catch(console.error);
+}
 
 function login(email, password) {
 	const data = JSON.stringify({
@@ -26,10 +33,16 @@ function login(email, password) {
 	}
 
 	const req = https.request(options, res => {
-		console.log(`statusCode: ${res.statusCode}`)
-
 		res.on('data', d => {
-			console.log(d.toString());
+			var json = JSON.parse(d.toString());
+
+			user.authToken = json.accessToken;
+
+			fs.writeFile('data/token.txt', user.authToken, function(err, data) {
+				if (err) {
+					return console.error(err);
+				}
+			});
 		});
 	});
 
@@ -41,8 +54,16 @@ function login(email, password) {
 	req.end();
 }
 
-function start() {
-	login(config.email, config.password);
+function getFreeSlots() {
+	const data = JSON.stringify({
+		accessToken: user.authToken
+	});
 }
 
+function start() {
+	login(config.email, config.password);
+	getFreeSlots();
+}
+
+setup();
 start();
