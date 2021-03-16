@@ -1,2 +1,10 @@
 config.js
 data/
+.vs/
+GlovoBot.njsproj
+GlovoBot.njsproj.user
+GlovoBot.sln
+bin/
+obj/
+package.json
+
