@@ -7,10 +7,66 @@ const API_PATH = '/';
 const API_PATH_V3 = '/v3/';
 const PORT = 443;
 
+const DATA_DIR = 'data/';
+const TOKEN_FILE = 'token.txt';
+
 var user = {}
 
 function setup() {
-	fs.promises.mkdir('data', { recursive: true }).catch(console.error);
+	fs.promises.mkdir(DATA_DIR, { recursive: true }).catch(console.error);
+}
+
+function getChallenges() {
+	
+}
+
+function refreshToken() {
+	const data = JSON.stringify({
+		refreshToken: user.authToken
+	});
+
+	const options = {
+		hostname: HOST,
+		port: PORT,
+		path: API_PATH + 'oauth/refresh',
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'Content-Length': data.length
+		}
+	}
+
+	const req = https.request(options, res => {
+		res.on('data', d => {
+			var json = JSON.parse(d.toString());
+
+			console.log(json);
+		});
+	});
+
+	req.on('error', err => {
+		console.error(err)
+	});
+
+	req.write(data);
+	req.end();
+}
+
+function getToken() {
+	fs.access(DATA_DIR + TOKEN_FILE, fs.F_OK, (err) => {
+		if (err) {
+			login(config.email, config.password);
+			return;
+		}
+
+		fs.readFile(DATA_DIR + TOKEN_FILE, 'utf8', (err, data) => {
+			if (err)
+				return;
+
+			user.authToken = data;
+			refreshToken();
+		});
+	});
 }
 
 function login(email, password) {
@@ -18,7 +74,7 @@ function login(email, password) {
 		username: email,
 		password: password,
 		termsAndConditionsChecked: true,
-		grantType: "PASSWORD"
+		grantType: 'PASSWORD'
 	});
 
 	const options = {
@@ -46,8 +102,8 @@ function login(email, password) {
 		});
 	});
 
-	req.on('error', error => {
-		console.error(error);
+	req.on('error', err => {
+		console.error(err);
 	});
 
 	req.write(data);
@@ -61,7 +117,7 @@ function getFreeSlots() {
 }
 
 function start() {
-	login(config.email, config.password);
+	getToken();
 	getFreeSlots();
 }
 
