@@ -2,22 +2,10 @@ const https = require('https');
 const config = require('./config.js');
 const fs = require('fs');
 
-const HOST = 'api.glovoapp.com';
-const API_PATH = '/';
-const API_PATH_V3 = '/v3/';
-const PORT = 443;
-
-const DATA_DIR = 'data/';
-const TOKEN_FILE = 'token.txt';
-
 var user = {}
 
 function setup() {
-	fs.promises.mkdir(DATA_DIR, { recursive: true }).catch(console.error);
-}
-
-function getChallenges() {
-	
+	fs.promises.mkdir(dataDir, { recursive: true }).catch(console.error);
 }
 
 function refreshToken() {
@@ -26,9 +14,9 @@ function refreshToken() {
 	});
 
 	const options = {
-		hostname: HOST,
-		port: PORT,
-		path: API_PATH + 'oauth/refresh',
+		hostname: host,
+		port: port,
+		path: apiPath + 'oauth/refresh',
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -53,13 +41,13 @@ function refreshToken() {
 }
 
 function getToken() {
-	fs.access(DATA_DIR + TOKEN_FILE, fs.F_OK, (err) => {
+	fs.access(dataDir + tokenFile, fs.F_OK, (err) => {
 		if (err) {
 			login(config.email, config.password);
 			return;
 		}
 
-		fs.readFile(DATA_DIR + TOKEN_FILE, 'utf8', (err, data) => {
+		fs.readFile(dataDir + tokenFile, 'utf8', (err, data) => {
 			if (err)
 				return;
 
@@ -69,18 +57,18 @@ function getToken() {
 	});
 }
 
-function login(email, password) {
+function login() {
 	const data = JSON.stringify({
-		username: email,
-		password: password,
+		username: config.email,
+		password: config.password,
 		termsAndConditionsChecked: true,
 		grantType: 'PASSWORD'
 	});
 
 	const options = {
-		hostname: HOST,
-		port: PORT,
-		path: API_PATH + 'oauth/token',
+		hostname: host,
+		port: port,
+		path: apiPath + 'oauth/token',
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
